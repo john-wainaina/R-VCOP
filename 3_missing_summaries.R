@@ -52,4 +52,14 @@ mean_fn <- function(col){
 
 purrr::map(names(x), mean_fn)
 
+combined %>%
+  summarise(
+    across(
+      .cols  = is.numeric, #everything(),
+      .fns   = mean, na.rm = T,
+      .names = "{col}_mean"
+    )
+  )
+
+
 

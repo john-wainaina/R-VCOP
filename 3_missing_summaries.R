@@ -15,6 +15,11 @@ apply(combined, 2, function(x) sum(is.na(x))/length(x) * 100)
 
 apply(combined, 2, \(x) sum(is.na(x))/length(x) *100)
 
+fns <- function(x) sum(is.na(x))/length(x)*100
+
+purrr::map(combined, fns)
+
+
 library(naniar)
 miss_var_summary(combined, percent = TRUE) %>% View()
 
@@ -36,5 +41,15 @@ sapply(combined[, sapply(combined, is.numeric)], mean, na.rm = T)
 x = combined[sapply(combined, is.numeric)]
 
 colMeans(x, na.rm = T)
+
+
+# assuming `combined` is a data frame with numeric columns ## using purrr::map
+x <- combined[sapply(combined, is.numeric)]
+
+mean_fn <- function(col){
+  mean(x[[col]], na.rm = TRUE)
+}
+
+purrr::map(names(x), mean_fn)
 
 

@@ -1,0 +1,352 @@
+---
+title: "RVCOP Session: Hypothesis Testing in R"
+author: "John Wainaina <phomwangi@gmail.com>"
+date: "2023-05-26"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+library(tidyverse)
+
+
+```
+
+# Hypothesis testing in R
+
+```{r eval=FALSE}
+
+A statistical hypothesis is an assumption made by the researcher about the 
+data of the population collected for any experiment.
+
+To validate a hypothesis, it will use random samples from a population. 
+On the basis of the result from testing over the sample data, it either
+*selects/fail to reject*/**!accept!** or *rejects* the hypothesis.
+
+A statistical test is a procedure used to evaluate the evidence 
+the data provides against a hypothesis.
+
+Statistical tests are either parametric or non-parametric.
+
+**Parametric tests** - based on assumptions about the distribution 
+of population from which the sample was taken. 
+
+**Nonparametric statistics** - do not rely on any distribution. 
+They are not based on any assumptions about distribution 
+of the population in reference.
+
+**Parametric tests** - continuous data/outcome
+
+Mean is the most appropriate summary measure
+for continuous outcome provided the data is not highly skewed.
+
+We will estimate and make valid conclusions about continuous outcome measure(s):
+  for single populations/group, two or more populations/groups.
+
+```
+
+## Hypothesis testing for numerical data
+
+### a) One group
+
+```{r, eval=FALSE}
+
+one sample - One Sample T-test
+
+E.g., Mean weight (Kg) of RVCOP class participants
+
+```
+
+### b) Two (2) groups
+
+```{r eval=FALSE}
+
+i) Independent groups
+
+E.g., Mean weight of boys and girls in a class
+
+Test: Independent 2 sample T-test
+
+ii) Paired groups/matched observations
+
+E.g., Mean weight of boys before and after special diet in a class
+
+Test: Paired 2 sample T-test
+
+```
+
+### Three (3) or more groups
+
+```{r eval=FALSE}
+
+i) Independent groups
+
+E.g., Mean glucose levels of men, women and children in a village
+
+H0: ua = ub = uc // ud = 0
+HA: ud != 0
+
+Test: One-way ANOVA - (ANalysis Of VAriance)
+
+ii) Paired groups/matched observations
+
+E.g., Mean glucose levels of diabetic patients one hour after 3 drugs experiments
+
+Test: Repeated Measures ANOVA
+
+```
+
+## 1) a) One group - One sample t-test 
+
+```{r eval=FALSE}
+
+Make inference about a continuous outcome in single population; i.e. 
+to determine/compare a sample mean with specified population mean (hypothesized value).
+
+The sample mean is thus used to make decision about the hypothesized population mean
+
+Define the null hypothesis (H0), the alternate hypothesis (H1) and the hypothesized population mean value
+
+If the p-value is less than chosen level of significance (p<0.05), we reject null hypothesis and report that:
+  
+  “the data provides statistical evidence to indicate that the 
+alternative hypothesis is true”. 
+
+If the p-value is equal to or greater than level of significance (p≥0.05), we fail to reject the null hypothesis and report that:
+  
+  “the data does not provide sufficient evidence to indicate that the alternative hypothesis is true”
+
+```
+
+
+```{r eval=FALSE}
+
+> t.test(data, alternative, mu, conf.level)
+
+> data: data on the variable of interest
+> alternative: what type of alternative hypothesis is specified?   (options: “two.sided”, “greater”, “less”)
+> mu: the value of μ under the null hypothesis
+> conf.level: confidence level of the test (1-α)
+
+```
+
+```{r}
+
+# define a vector/data of orange weights
+orange_weights <- c(300, 315, 320, 311, 314, 309, 300, 308, 305, 303, 305, 301, 303)
+
+t.test(orange_weights, mu = 310, conf.level = 0.95)
+
+```
+
+## 2) a) 2 Independent Groups - Two sample t-test 
+
+```{r eval=FALSE}
+
+TWO-SAMPLE t-TEST
+
+t.test(data1, data2, alternative, mu, conf.level)
+
+> data1: data on the first variable of interest
+> data2: data on the second variable of interest
+> alternative: what type of alternative hypothesis is specified?   (options: “two.sided”, “greater”, “less”)
+> mu: the value of the difference μ−μ2 under the null hypothesis
+> conf.level: confidence level of the test (1−α)
+
+```
+
+
+```{r}
+data1 <- c(300, 315, 320, 311, 314, 309, 300, 308, 305, 303, 305, 301, 303)
+data2 <- c(335, 329, 322, 321, 324, 319, 304, 308, 305, 311, 307, 300, 305)
+
+t.test(data1, data2) # alternative, mu, conf.level)
+
+iris <- iris %>% filter(!Species %in% c('versicolor'))
+
+boxplot(Sepal.Length ~ Species, data = iris)
+
+t.test(Sepal.Length ~ Species, data = iris)
+
+
+```
+
+## 3) a) 2 groups paired - Two sample paired t-test 
+
+```{r, echo=FALSE}
+
+#define before and after max jump heights
+before <- c(22, 24, 20, 19, 19, 20, 22, 25, 24, 23, 22, 21)
+after <- c(23, 25, 20, 24, 18, 22, 23, 28, 24, 25, 24, 20)
+
+t.test(x = before, y = after, paired = TRUE)
+
+
+```
+
+## 4) a) Three (3) or more independent groups - One way ANOVA
+
+```{r eval=FALSE}
+
+ANOVA - a generalization of the t-tests.
+
+This ANOVA test is an extension of the two independent samples t-test.
+
+It is a test for equality of three or more populations means 
+for independent groups and uses sample means of respective populations to draw conclusion.
+
+E.g., A JAVA stores is test marketing of 3 pizzas in Kenya. To find out if they are of the same popularity, 18 joints are randomly chosen for participation in the study. 6 of 18 joints are randomly chosen to test market the first new pizza, another 6 for the second, and the remaining 6 for the last pizza.
+
+piz1 piz2 piz3 
+22    52    16 
+42    33    24 
+44     8    19 
+52    47    18 
+45    43    34 
+37    32    39
+
+i) Assumptions: Outcome measurements - normally distributed
+ii) The population variance is the same across the groups (homogeinity of variance). #Bartlett's test
+
+Hypotheses:
+  
+H0 - all the populations have equal means/
+Population means are equal for all groups - any observed differences in sample means are due to random sampling variation.
+
+H1 - at least two population have different mean values/
+Observed differences between sample means are due to actual differences in the population means.
+
+**Variance** is used to assess equality of the mean values of different groups.
+
+```
+
+
+```{r}
+pizza <- data.frame(
+  piz1 = c(22, 42, 44, 52, 45, 37),
+  piz2 = c(52, 33, 8, 47, 43, 32),
+  piz3 = c(16, 24, 19, 18, 34, 39)
+)
+
+library(tidyr)
+long_pizza <- pizza %>% pivot_longer(., cols = c(piz1, piz2, piz3),
+                                     names_to = 'Type',
+                                     values_to = 'Sales')
+
+summary(aov(Sales ~ Type, data = long_pizza))
+
+
+```
+
+## 5) b) Three (3) or more paired/matched groups - Repeated Measures ANOVA Test
+
+
+```{r eval=FALSE}
+
+Repeated measures design is a research design that involves
+multiple measures of the same variable taken on the same or matched subjects either under different conditions or over two or more time periods. 
+
+E.g., in a longitudinal study, measurements of glucose levels are taken from the same diabetic patients at different time points in which change over time is assessed following treatments.
+
+In this case, the sample values are correlated - this test is therefore  ANOVA for correlated samples. It is a generalization of paired T-tests.
+
+Assumptions:
+  i) Response measurements are normally distributed.
+  ii) Covariance between responses in each subject are equal (sphericity)  
+
+*Use Mauchly`s* Test for Sphericity* to evaluate equality of variances of the difference between all possible pairs of repeated condition.
+
+install.packages('rstatix')
+library(rstatix)
+library(stats)
+
+```
+
+```{r, echo=FALSE, message=FALSE}
+
+diabetes_data <- data.frame(
+subject = c(rep("Subject 1", 3), rep("Subject 2", 3), rep("Subject 3", 3)),
+time = rep(c("Pre", "Post", "Follow-up"), 3),
+score = c(10, 12, 15, 8, 9, 11, 13, 14, 16),
+id = c(rep(c(1), 3), rep(c(2), 3), rep(c(3), 3))
+)
+
+library(ggpubr)
+
+ggpubr::ggqqplot(diabetes_data, "score", facet.by = "time")
+
+```
+
+```{r}
+
+ggpubr::ggqqplot(diabetes_data$score)
+
+```
+
+```{r}
+
+shapiro.test(diabetes_data$score)
+
+diabetes_data %>% group_by(time) %>%  rstatix::shapiro_test(score)
+
+```
+
+```{r}
+
+library(stats)
+library(car)
+
+rep_anova <- aov(score ~ time + Error(subject/time), data = diabetes_data)
+
+model <- aov(score ~ subject, data = diabetes_data) # needs for sphericity correction
+
+summary(model, sphericity.correction = "GGe") # sphericity correction applied
+
+#mauchly.test(model)
+```
+
+Perform repeated measures ANOVA
+Run repeated measures ANOVA
+
+```{r}
+library(ez)
+
+#?ezANOVA # read documentation of the function
+
+anova_result <- ezANOVA(
+  data = diabetes_data,
+  dv = score,
+  wid = id,
+  within = time,
+  between = subject, #measurements at different times within same patients
+  detailed = TRUE,
+  type = 3)
+
+anova_result
+
+```
+
+Repeated measures ANOVA with Sphericity correction
+
+```{r}
+library(afex)
+
+anova_result <- aov_ez(
+  data = diabetes_data,
+  id = "id",
+  dv = "score",
+  within = "time",
+  between = "subject",
+  return_aov = TRUE,
+  anova_table = list(correction = "GG")
+)
+
+anova_result
+
+```
+
+

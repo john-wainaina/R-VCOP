@@ -1,0 +1,682 @@
+---
+title: "INTRODUCTION TO STATISTICAL MODELING IN R"
+author: "John Wainaina <phomwangi@gmail.com>"
+date: "2023-06-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(knitr)
+library(tidyverse)
+
+```
+
+Statistical Modeling
+
+
+```{r eval=FALSE}
+
+Statistical modeling a formal depiction of a theory - a mathematical relationship between random and non-random variables.
+
+Statistical modeling is the use of *mathematical models* and *statistical assumptions* to generate sample data and make predictions about the real world. 
+
+A statistical model is a collection of probability distributions on a set of all possible outcomes of an experiment.
+
+The purpose of a statistical model is to help understand:
+  
+  > what variables might best predict a phenomenon of interest.
+  > which ones have more or less influence. 
+  > define a predictive equation with coefficients for each of the variables.  
+  > predict values using the same input variables for other areas. 
+
+https://bookdown.org/igisc/EnvDataSci/EnvDataSci_files/figure-html/ModelingChapter-1.png
+
+
+```
+
+Aim of Statistical Modeling & Model's Mathematical Equation
+
+```{r eval=FALSE}
+
+Given a collection of variables (e.g., age, smoking, alcohol intake, etc...), each variable being a vector of a specific characteristic (e.g., age) in an experiment, explain how an outcome (say, cancer risk), depend on these variables.
+
+These are: outcome (risk of cancer, Y)
+           variables ( age, smoking, alcohol intake: X1, X2, X3, ...Xn)
+
+           
+y ~ X1 + X2 + X3 + ...Xn
+
+A statistical model then depics this mathematical relationship between the Xi`s and Y.
+
+It will try to explain this relationship with a sample data about the population. Atleast, the model should capture the dependence of Y on Xi`s.
+
+Equation: 2 sided, where left `equal` right/ left explained by right/ left stores contents of right ...
+
+Y ~ X # when Y as a function of one variable x
+
+Y ~ X1 + X2 + X3 + ... Xn # when Y as a function of X1 and X2 and X3 and ... Xn
+
+
+```
+
+Types of Variables in a Statistical Model
+
+```{r, eval=FALSE}
+
+Since the left (Y in this case) is therefore dependent on the right (Xi`s), it is called a *dependent variable*! This also responds to the effect of the right hand variables, thus can bear the name *response* variable. 
+
+The value of Y is dependent on the values and variations of Xi`s. It is therefore predicted by Xi`s. You can therefore call these Xi`s *predictors* variables or *explanatory* variables or *explainer* variables. 
+
+Since they do not dependend of any other, are not affected by any other variable in the model, their values remain, they can also be called *independent* variables. The equation:
+                                                                     
+dependent ~ Independent`1 + Independent`2 + ... Independent`n                                                                   
+
+```
+
+Types of Variables in Statistical Models
+
+```{r eval=FALSE}
+
+Models depend and behave differently depending on the type of:
+  
+  > Outcome/response variable
+  > Explanatory/predictor variables
+  
+They can be:
+
+    > continuous
+    > categorical
+    > count
+    > proportions
+    > time-to-death/time-to-outcome
+
+All explanatory variables continuous - Regression 
+
+All explanatory variables categorical - Analysis of variance (Anova) 
+
+Explanatory variables both continuous and categorical - Analysis of covariance  (Ancova)
+
+When the response variable is:
+  
+      Continuous - Normal Regression, Anova, Ancova
+      
+      Proportion - Logistic regression
+      
+      Count - Log linear models
+      
+      Binary - Binary logistic analysis
+      
+      Time-to-death - Survival analysis
+
+
+```
+
+
+Types of Data Distributions
+
+Normal Distribution: Values follow a normal distribution - often called the bell curve.
+
+```{r eval=FALSE}
+
+rnorm(100, mean = 0, sd = 1)
+
+hist(rnorm(100, mean = 0, sd = 1))
+
+```
+
+Uniform Distribution: All values in a given range have equal probability
+
+```{r}
+
+hist(runif(100, min = 0, max = 1))
+
+```
+
+Binomial Distribution: Deals with the number of successes in a fixed number of independent Bernoulli trials
+
+```{r}
+
+hist(rbinom(100, size = 10, prob = 0.5))
+
+```
+
+Poisson Distribution: Models the number of events occurring in a fixed interval of time or space
+
+```{r}
+
+barplot(rpois(100, lambda = 2))
+
+
+```
+
+```{r}
+
+plot(rexp(100, rate = 0.5))
+
+
+```
+
+
+Types of Models in R
+
+
+```{r eval=FALSE}
+
+1. Linear Regression:
+
+Models the relationship between predictor variables and a continuous response variable using a linear equation.
+Key concepts: Least squares estimation, coefficients, residuals.
+Example R functions: lm(), predict()
+
+2. Generalized Linear Models (GLM):
+
+  family = c('binomial', 'ordinal', ...)
+
+
+Extends linear regression to handle various types of response variables (e.g., binary, count, categorical) by specifying a link function and a suitable error distribution.
+Key concepts: Link function, error distribution, deviance.
+Example R functions: glm(), predict()
+
+3. Time Series Models:
+
+Models data that evolves over time, capturing trends, seasonality, and other temporal patterns.
+Key concepts: Autocorrelation, stationarity, ARIMA, SARIMA.
+Example R packages: forecast, statsmodels, prophet
+
+4. Survival Analysis:
+
+Description: Models time-to-event data, such as time until death or failure, and incorporates censoring.
+Key concepts: Hazard function, survival function, Kaplan-Meier estimator, Cox proportional hazards model.
+Example R packages: survival, KMsurv, coxph
+
+etc.
+
+```
+
+Model Assumptions
+
+```{r eval=FALSE}
+
+A collection of explicitly stated (or implicit premised), conventions, choices and other specifications on which any Risk Model is based. The suitability of those assumptions is a major factor behind the Model Risk associated with a given model.
+
+Examples include:
+  Independence 
+  Normality
+  Constant variance # Homoscedasticity, or homogeneity of variances
+  Linear relationship
+  No or little multicollinearity # variance inflation factor (VIF)
+  No auto-correlation
+ 
+
+Linearity:
+
+Assumption: The relationship between the predictor variables and the response variable is linear.
+Implication: Violation of this assumption may lead to biased coefficient estimates and inaccurate predictions. Consider using techniques like polynomial regression or non-linear models if the relationship is not linear.
+
+Independence:
+
+Assumption: Observations are independent of each other.
+Implication: Violation of this assumption, such as in time series data or clustered observations, may require specialized modeling techniques (e.g., time series analysis, mixed-effects models).
+
+Normality:
+
+Assumption: The residuals or errors of the model are normally distributed.
+Implication: Deviations from normality may affect parameter estimates, hypothesis tests, and confidence intervals. Robust methods or transformations can be used for non-normal data.
+
+Homoscedasticity:
+
+Assumption: The variability of the residuals is constant across all levels of the predictor variables.
+Implication: Violation of this assumption can lead to biased standard errors, invalid hypothesis tests, and incorrect confidence intervals. Consider using heteroscedasticity-robust standard errors or transformations if heteroscedasticity is present.
+
+Independence of Errors:
+
+Assumption: The residuals or errors are independent of each other.
+Implication: Violation of this assumption, such as in time series or spatial data, requires specific models that account for autocorrelation or spatial dependence.
+
+No Multicollinearity:
+
+Assumption: The predictor variables are not highly correlated with each other.
+Implication: High multicollinearity can lead to unstable coefficient estimates and difficulty in interpreting the effects of individual predictors. Assess correlation among predictors and consider techniques like variable selection or regularization if multicollinearity is present.
+
+Absence of Outliers:
+
+Assumption: The data does not contain influential outliers that unduly influence the model estimation.
+Implication: Outliers can distort parameter estimates, affect model fit, and lead to incorrect inferences. Assess and handle outliers appropriately, such as through robust regression or removing influential observations.
+
+
+
+
+```
+
+
+Fitting Models in R
+
+1) Linear Regression Model (lm)
+
+
+```{r, eval=FALSE}
+
+fitted.model <- function(formula, data = data.frame)
+
+
+fitted.model <- lm(y ~ x, data = data.frame)
+
+a) Simple Linear Model
+
+lmodel <- lm(y ~ x, data = data.frame)
+
+
+a) Multiple Linear Model 
+
+lmodel <- lm(y ~ x1 + x2 + x3, data = data.frame) 
+
+# would fit a multiple regression model of y on x1, x2 and x3 (with implicit intercept term).
+
+y = ab + c
+
+
+
+```
+
+Linear Model Example
+
+```{r}
+
+data <- data.frame(mtcars)
+
+head(data)
+
+summary(data)
+
+#  Predict the mileage per gallon (mpg) of cars based on their horsepower (hp) and weight (wt).
+
+plot(data$hp, data$mpg)  # Scatter plot of horsepower vs. mpg
+
+library(ggplot2)
+
+ggplot(data = data, mapping = aes(x = mpg, y = hp)) +
+  geom_point() +
+  geom_smooth()
+
+# Fitting the Linear Model
+model <- lm(mpg ~ hp + wt, data = data)
+
+# Interpreting the Model
+
+summary(model)  # View the summary of the fitted model
+
+coef(model)     # Get the estimated coefficients of the model
+fitted(model)   # Get the predicted values of the dependent variable
+
+
+```
+
+### What`s the equation of the above model?
+
+```{r eval=FALSE}
+
+Y = β₀ + β₁X₁ + β₂X₂ + ... + βₚXₚ
+
+where:
+
+Y is the dependent variable (in this case, mpg - miles per gallon),
+X₁, X₂, ... Xₚ are the independent variables (in this case, hp - horsepower and wt - weight),
+β₀, β₁, β₂, ... βₚ are the coefficients (or parameters) estimated by the linear model.
+In the specific example we discussed using the mtcars dataset, the equation of the model would be:
+
+mpg = β₀ + β₁ * hp + β₂ * wt
+
+mpg = 37.22727012 + -0.03177hp + -3.87783wt
+
+
+Coefficients represent the estimated change in the dependent variable (mpg) 
+associated with a one-unit increase in the corresponding independent variable (hp or wt), 
+assuming all other variables are held constant.
+
+```
+
+### Add the fitted values to the dataset
+
+```{r}
+
+fitted(model)
+
+fitted_data <- cbind(data, fitted(model))
+
+fitted_data <- fitted_data %>% select(mpg, `fitted(model)`, everything())
+
+
+```
+
+
+### Evaluating the Model
+
+```{r}
+
+# Comparing Fitted Values and Observed Values
+
+fitted_values <- fitted(model)
+
+observed_values <- data$mpg
+
+head(data.frame(Fitted = fitted_values, Observed = observed_values), 10)
+
+```
+
+Model Diagnostics 
+
+#### How well does the model predicts the fitted data?
+  
+a) Residual Analysis: 
+
+```{r eval=FALSE}
+
+Residuals are the differences between the observed values and the fitted values. 
+
+You can visualize the residuals using plots such as a scatterplot of residuals against the fitted values or
+
+a histogram of residuals. 
+
+This helps to check if the residuals are randomly distributed around zero and exhibit constant variance.
+
+```
+
+
+```{r}
+
+# Residual analysis
+
+plot(model, which = c(1))  # Scatterplot and histogram of residuals
+
+
+plot(model)
+
+```
+
+b) R-Squared (Coefficient of Determination)
+
+```{r eval=FALSE}
+
+R-squared measures the proportion of the variance in the dependent variable 
+
+that is explained by the independent variables. Higher R-squared values 
+
+indicate a better fit. You can obtain the R-squared value using:
+
+ 
+```
+
+
+```{r}
+# R-squared
+
+summary(model)$r.squared
+
+
+```
+
+c) Root Mean Squared Error (RMSE)
+
+
+```{r eval=FALSE}
+
+RMSE quantifies the average deviation between the observed values and the fitted values. 
+
+Lower RMSE values indicate a better fit. 
+
+You can calculate the RMSE using functions like: 
+
+
+```
+
+```{r}
+
+sqrt(mean(residuals(model)^2))
+
+
+```
+
+
+d) Predicted vs. Observed Plot
+
+
+```{r eval=FALSE}
+
+Plotting the predicted values against the observed values can provide a visual assessment of the model`s performance. 
+
+Ideally, the points should fall along a diagonal line, indicating a strong agreement between the predicted and observed values.
+
+```
+
+
+```{r}
+
+# Predicted vs. Observed plot
+
+plot(observed_values, fitted_values, xlab = "Observed", ylab = "Predicted") +
+
+abline(0, 1, col = "red")  # Add a diagonal line
+
+
+```
+
+
+# Diagnostic plots of the model from the plot()
+
+
+```{r eval=FALSE}
+
+# a) Residual vs Fitted
+
+Helps to assess if the residuals have a random pattern with respect to the fitted values.
+
+Ideally, the residuals should be randomly scattered around zero without any discernible pattern.
+
+If a pattern is observed (e.g., a funnel shape or curvature), 
+
+It suggests that the relationship between the dependent variable and 
+
+the independent variables is not linear, or that there may be heteroscedasticity (unequal variance)
+
+in the errors.
+
+```
+
+
+```{r}
+
+plot(model, which = c(1))  
+
+
+```
+
+
+```{r eval=FALSE}
+
+# b) Normal Q-Q plot
+
+Assess whether the residuals follow a normal distribution.
+
+If the residuals follow a normal distribution, the points on the
+
+plot should roughly align along a straight line. 
+
+Departures from a straight line indicate deviations from normality. 
+
+For example, if the points deviate from the line towards the tails, 
+
+it suggests heavy tails or outliers in the data. 
+
+Departures from normality may affect the validity of statistical inference and the reliability of the model.
+
+```
+
+
+```{r}
+
+plot(model, which = c(2)) 
+
+
+```
+
+
+
+```{r eval=FALSE}
+
+# c) Scale-Location Plot
+
+The scale-location plot, also known as the spread-location plot or 
+
+the square root of standardized residuals plot, is used to evaluate the 
+
+assumption of constant variance (homoscedasticity) in the residuals.
+
+The square root of the absolute standardized residuals is plotted against the fitted values. 
+
+Ideally, the plot should show a roughly horizontal line with constant spread, indicating homoscedasticity. 
+
+
+```
+
+
+
+```{r}
+
+plot(model, which = c(3))
+
+```
+
+
+```{r eval=FALSE}
+# d) Residuals vs Leverage
+
+Displays the standardized residuals (vertical axis) against the leverage values (horizontal axis).
+
+It helps identify influential observations that may have a disproportionate impact on the model`s results.
+
+Points in the upper-right or lower-right regions of the plot indicate observations with high leverage 
+
+and potentially high influence on the regression line
+
+
+```
+
+
+```{r}
+
+resid_diff <- fitted_data$`fitted(model)` - fitted_data$mpg
+
+fitted_data <- cbind(fitted_data, resid_diff)
+
+plot(model, which = c(3))
+
+
+```
+
+
+Extracting model outputs: Model Summary
+
+
+```{r}
+
+summary(model) # whole summary
+
+coef(model) # coefficients 
+
+residuals(model) # residuals
+
+fitted(model) # fitted values
+
+summary(model)$r.squared # R-squared value
+
+summary(model)$coefficients[, "Std. Error"] # standard errors of the coefficient estimates
+
+summary(model)$coefficients[, "Pr(>|t|)"] # p-values
+
+summary(model)$coefficients[, "t value"] # t value
+
+confint(model) # confidence intervals
+
+summary(model)$coefficients[, c("Estimate", "Std. Error")] # estimates/standard errors and 
+
+cbind(summary(model)$coefficients[, c("Estimate", "Std. Error")], confint(model)) # combine to have [coef](95% CI)
+
+
+```
+
+
+Explaining or Interpreting the Model Results
+
+```{r, }
+
+model <- lm(formula = mpg ~ hp + wt, data = data)
+
+summary(model)
+
+
+```
+
+i) Coefficients
+
+```{r eval=FALSE}
+
+The coefficients represent the average change in the response variable (mpg) for 
+
+a one-unit increase in the predictor variable, while holding other variables constant. 
+
+For example, the estimated coefficient for hp is -0.03177, indicating that, on average, 
+
+a one-unit increase in hp is associated with a decrease of 0.03177 units in mpg. 
+
+Check out the t-values and p values alongside for statistical significance.
+
+```
+
+ii) Multiple R-squared
+
+```{r eval=FALSE}
+
+The  R-squared is 0.8268, which means that approximately 82.68% of the variation 
+
+in mpg is explained by the predictors hp and wt.
+
+
+```
+
+iii) Adjusted R-squared
+
+```{r eval=FALSE}
+
+The  takes into account the number of predictors and the sample size, 
+
+providing a penalized version of the multiple R-squared. In this case, 
+
+the adjusted R-squared is 0.8148
+
+
+```
+
+
+
+```{r eval=FALSE}
+
+The F-statistic evaluates the overall significance of the linear regression model. 
+
+It measures the ratio of the variability explained by the model to the unexplained variability.
+
+In this example, the F-statistic is 69.21, suggesting that the model is statistically significant. 
+
+The associated p-value is 9.109e-12, which is extremely small, 
+
+indicating strong evidence against the null hypothesis that all the coefficients are zero.
+
+
+```
+
+
+
+
+
+

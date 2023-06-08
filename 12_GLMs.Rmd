@@ -1,0 +1,226 @@
+---
+title: "Generalized Linear Models - GLMs"
+author: "John Wainaina <phomwangi@gmail.com>"
+date: "2023-06-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(data.table)
+
+
+```
+
+## Generalized Linear Models
+
+The generalized linear model (GLM) generalizes linear regression by allowing the linear model to be related to the response variable via a link function.
+
+This allows the magnitude of the variance of each measurement to be a function of its predicted value. 
+
+GLM unifies various other statistical models: 
+  linear regression, 
+  logistic regression, and 
+  Poisson regression. 
+
+Function glm() is used to fit generalized linear models.
+
+Ordinary linear regression predicts the expected value of a given unknown quantity (the response variable, a random variable) as a linear combination of a set of observed values (predictors). 
+
+This implies that a constant change in a predictor leads to a constant change in the response variable (i.e. a linear-response model). This is appropriate when the response variable can vary, to a good approximation, indefinitely in either direction.
+
+However, in exponential-response model, these assumptions are invalid. In this case, a more realistic model would instead predict a **constant rate of change**.
+
+(or log-linear model, log-odds or logistic model- with bernoulli outcome probability for example).
+
+
+```{r}
+
+```
+
+## Distributions
+
+1. **Gaussian Distribution (Normal Distribution)**:
+
+ Also known as the normal distribution. 
+ 
+ It is characterized by its bell-shaped curve and is symmetric around its mean.
+
+Example: The distribution of adults heights in a population, the distribution of IQ scores.
+
+2. **Binomial Distribution**:
+
+  The binomial distribution describes the number of successes in a fixed number of         independent Bernoulli trials, where each trial has only two possible outcomes:
+  ***success or failure***. 
+
+  The distribution is characterized by two parameters: **n** (the number of trials) and     **p** (the probability of success in a single trial). 
+
+Example: Modeling the number of heads obtained when flipping a coin a certain number of times.
+
+3. **Poisson Distribution**:
+
+  The Poisson distribution models the number of events that occur within a fixed         interval of time or space. 
+  
+  It is often used to describe rare events with a known average rate of occurrence. 
+
+Example: On average, there are 5 cars arriving at the toll booth per minute. We can model the number of cars that arrive in a given minute using a Poisson distribution.
+
+4. **Gamma Distribution**:
+
+The gamma distribution is a continuous probability distribution that is often used to model positive-valued data with skewed distributions.
+
+Example: Modeling the time it takes for a customer service representative to handle a    call, 
+  the waiting time until the next customer arrival, or 
+  the lifetime of a lightbulb.
+
+```{r}
+
+
+# data("bodyfat", package = "mboost")
+# 
+# myFormula <- DEXfat ˜age + waistcirc + hipcirc + elbowbreadth + kneebreadth
+# 
+# bodyfat.glm <- glm(myFormula, family = gaussian("log"), data = bodyfat)
+
+
+```
+
+## Components of any GLM:
+
+a) ***Random Component*** - 
+
+specifies the probability distribution of the response variable; e.g., normal distribution for in the classical regression model, or binomial distribution for 
+ in the binary logistic regression model. This is the only random component in the model; there is not a separate error term.
+ 
+b) ***Systematic Component*** - 
+
+specifies the explanatory variables in the model, more specifically, their linear combination.
+
+c) ***Link Function***
+
+specifies the link between the random and the systematic components. It indicates how the expected value of the response relates to the linear combination of explanatory variables.
+
+
+```{}
+
+
+
+```
+
+**Assumptions**
+
+i) The data are independently distributed, i.e., cases are independent.
+
+ii) The dependent variable does NOT need to be normally distributed.
+
+iii) A GLM does NOT assume a linear relationship between the response variable and the explanatory variables, but it does assume a linear relationship between the transformed expected response in terms of the link function and the explanatory variables.
+
+iv) The homogeneity of variance does NOT need to be satisfied.
+
+v) Errors need to be independent but NOT normally distributed.
+
+vi) Parameter estimation uses maximum likelihood estimation (MLE).
+
+
+**Maximum Likelihood Estimation (MLE)** - 
+
+***Likelihood***: In statistics, the likelihood refers to the probability of observing the given data, assuming a particular set of model parameters. The likelihood function is constructed based on the assumed distribution and the parameters of the model.
+
+***Estimation***: Estimation involves finding the values of the model parameters that best fit the observed data. The goal is to find the parameter values that make the observed data most likely.
+
+***MLE provides an estimate that best fits the observed data***
+
+```{}
+
+
+
+```
+
+## GLM Formula
+
+g(μ) = β₀ + β₁x₁ + β₂x₂ + ... + βₚxₚ
+
+In this formula:
+
+ - g(μ) represents the link function applied to the expected value of the response         variable (μ).
+ - β₀, β₁, β₂, ..., βₚ are the regression coefficients associated with the predictor       variables x₁, x₂, ..., xₚ, respectively.
+ - p is the number of predictor variables.
+
+
+
+A) **Bernoulli outcome probability** - **Binary logistic regression**
+
+Response variable is binary or dichotomous [Male/Female; Success/Failure; Dead/Alive; 0/1]
+
+The occurence of event of interest takes 1 and 0 when it does not happen.
+
+The **logit** transformation is used as the link function.
+
+Once the coefficients are estimated, they can be interpreted as the ***change in the log-odds of the success probability associated with a one-unit change in the corresponding predictor variable, assuming all other variables are held constant***.
+
+The goal is to predict the **probability of belonging to a specific class** based on predictor variables.
+
+In this formula:
+
+logit(p) = β₀ + β₁x₁ + β₂x₂ + ... + βₚxₚ
+
+  logit(p) represents the log-odds (logarithm of the odds) of the success probability,     where p is the probability of success.
+
+  β₀, β₁, β₂, ..., βₚ are the regression coefficients associated with the predictor        variables x₁, x₂, ..., xₚ, respectively.
+
+  p is the number of predictor variables.
+
+B) **Multinomial Logistic Regression Model** - Multinomial distribution of outcome var.
+
+
+MLogit regression is used to estimate the probabilities for the m categories of a qualitative dependent variable Y, using a set of explanatory variables X.
+
+The goal is to model the relationship between the predictor variables and the probabilities of the different categories of the response variable. 
+
+The model estimates the probabilities of each category relative to a reference category.
+
+In this formula:
+
+logit(pᵢ) = β₀ᵢ + β₁x₁ + β₂x₂ + ... + βₚxₚ
+
+
+  for each category i = 1, 2, ..., K-1, where K is the total number of categories. Each     category has its own set of regression coefficients (β₀ᵢ, β₁, β₂, ..., βₚ) 
+  
+  The logit transformation is used as the link function to model the relationship            between the predictor variables and the log-odds (logit) of each category's            probability.
+
+  Once the coefficients are estimated, they can be interpreted as the change in the        log-odds of each category's probability associated with a one-unit change in the       corresponding predictor variable, assuming all other variables are held constant.
+
+
+C) **Ordinal logistic regression**
+
+Also known as proportional odds regression or ordered logistic regression.
+
+A statistical method used to model the relationship between predictor variables and an ordinal (ordered) response variable. 
+
+The response variable is assumed to have an inherent ordering or ranking, such as Likert scale responses (e.g., strongly disagree, disagree, neutral, agree, strongly agree). 
+
+The goal is to estimate the cumulative odds of falling into or above each category of the response variable relative to the lower categories.
+
+The model assumes a proportional odds assumption, which means that the relationship between the predictor variables and the cumulative odds of each category is constant across the response variable's levels.
+
+
+logit(pᵢ ≤ j) = β₀j + β₁x₁ + β₂x₂ + ... + βₚxₚ
+
+for each category j = 1, 2, ..., J-1, where J is the total number of categories. Each category has its own set of intercepts (β₀j) and regression coefficients (β₁, β₂, ..., βₚ)
+
+Interpreting the coefficients in ordinal logistic regression involves considering the odds ratios associated with each predictor variable.
+
+These odds ratios indicate the ***change in the odds of being in or above a higher category for a one-unit change in the predictor variable, holding other variables constant***.
+
+```{r, eval=FALSE}
+
+1 - Binary logistic regression model
+
+# Fit a binary logistic regression model
+model <- glm(response ~ predictor1 + predictor2, data = data, family = binomial)
+
+##### check out the next script (13_Binary_Logistic_Model.Rmd)
+
+```

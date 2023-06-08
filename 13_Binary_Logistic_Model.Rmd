@@ -1,0 +1,339 @@
+---
+title: "Binary Logistic Regression in R"
+author: "John Wainaina <phomwangi@gmail.com>"
+date: "2023-06-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+library(tidyverse)
+library(data.table)
+library(stats)
+library(lme4)
+library(lmerTest)
+library(broom)
+library(broom.helpers)
+library(MASS)
+library(pROC)
+
+
+```
+
+## Binary Logistic Regression Model
+
+```{r}
+
+# Load diabetes data from package below
+
+library(mlbench)
+
+data(PimaIndiansDiabetes2)
+
+summary(PimaIndiansDiabetes2)
+
+# Pregnant: Number of times pregnant
+# Glucose: Plasma glucose concentration (glucose tolerance test)
+# Pressure: Diastolic blood pressure (mm Hg)
+# Triceps: Skinfold thickness (mm)
+# Insulin: 2-Hr serum insulin (mu U/ml)
+# Mass: Body mass index (weight in Kg/ (height in m)² )
+# Pedigree: Diabetes pedigree function
+# Age: Age (years)
+
+newdata <- na.omit(PimaIndiansDiabetes2)
+
+names(PimaIndiansDiabetes2)
+
+# visualize distribution - all explanatory variables at once using for loop
+
+for( i in 1:8){
+  hist(newdata[,i], 
+       main = colnames(newdata)[i],
+       xlab = colnames(newdata)[i], 
+       col = 'yellow')
+}
+
+#response
+
+table(newdata$diabetes)
+
+```
+
+### Categorize some continuous data
+
+```{r}
+## categorize age
+
+summary(newdata$age)
+
+newdata$age_bucket <- 
+  as.factor(ifelse(newdata$age <= 30, "20-30",
+                   ifelse(newdata$age <= 40,"31-40",
+                          ifelse(newdata$age <=50, "41-50", "50+"))))
+
+table(newdata$age_bucket)
+
+```
+
+```{r}
+
+# categorize no. of pregs
+
+newdata$preg_bucket <- 
+  as.factor(ifelse(newdata$pregnant <= 5, "0–5",
+                   ifelse(newdata$pregnant <= 10, "6–10", "10+")))
+
+table(newdata$preg_bucket)
+```
+
+## create a new data frame of relevant modeling variables
+
+```{r}
+
+newdata2 <- 
+  newdata[, c("diabetes","glucose","pressure","triceps",
+              "insulin","mass","pedigree","age_bucket","preg_bucket")]
+
+## specify order of variable levels
+
+newdata2$preg_bucket <- 
+  factor(newdata2$preg_bucket, ordered = T, levels = c("0–5","6–10", "10+"))
+
+newdata2$diabetes <- factor(newdata2$diabetes, levels = c('neg', 'pos'))
+
+## check the baseline level of a variable
+
+contrasts(newdata2$diabetes)
+
+```
+
+## Fit the model
+
+```{r}
+
+logit_1 <- glm(diabetes ~ glucose +
+                 pressure +
+                 triceps +
+                 insulin +
+                 mass +
+                 pedigree +
+                 age_bucket +
+                 preg_bucket, family = binomial, data = newdata2)
+
+## or using below when ALL explanatory variables in the model are being used
+
+logit_1 <- glm(diabetes ~. , family = binomial, data = newdata2)
+
+## Produce the summary of the model 
+
+summary(logit_1)
+
+
+### Note below items for model diagnostics and any warnings!
+
+      # Distribution of the deviance residuals
+      # Intercept and slope estimates along with the standard error, z-value, and p-value
+      # AIC value
+      # Residual deviance and Null deviance
+
+
+```
+
+**Interpretation of Results**: - using log odds - pay attention to p values too.
+
+***For continuous variables***;
+
+For every one unit increase in glucose, the log odds of being diabetic ‘pos’(versus being diabetic ‘neg’) increases by 0.039.
+
+For one unit increase in pressure, the log odds of being diabetic ‘pos’(versus being diabetic ‘neg’) decreases by 0.0045.
+
+***For categorical variables***;
+
+The performance of each category is evaluated with respect to a base category. 
+
+The base category for the variable ‘age_bucket’ is 20–30 and for ‘preg_bucket’ is 0–5. The interpretation of such variables is:
+
+Being in the age bucket of 31–40, versus age bucket of 20–30, changes the log odds of being diabetic ‘pos’(versus being diabetic ‘neg’) by 0.854.
+
+Being in the pregnancy bucket of 6–10, versus pregnancy bucket of 0–5, changes the log odds of being diabetic ‘pos’(versus being diabetic ‘neg’) by -0.24.
+
+
+## To analyze the predicted probability of having the value of “diabetes” as “pos” 
+
+```{r}
+
+summary(logit_1$fitted.values)
+
+hist(logit_1$fitted.values,
+     main = " Histogram ",
+     xlab = "Probability of 'pos' diabetes", 
+     col = 'light green')
+
+
+```
+
+
+## Model Performance Evaluation
+
+a) **AIC**
+  - stands for Akaike Information Criteria. 
+  It is analogous to adjusted R² and is the measure of fit which penalizes model for the number of independent variables. We always prefer a model with minimum AIC value.
+
+We can compare AICs and conclude the best model has the smallest AIC - this would be after fitting different models (with different explanatory variables). 
+
+***Check out **stepAIC** for stepwise addition or removal of variables in a model until you get the best fitting model (with smallest AIC)***
+
+```{r}
+
+logit_1$aic
+
+
+```
+
+
+b) **Confusion Matrix**
+
+A comparison of Observed vs Predicted values. 
+
+It helps to quantify the efficiency (or accuracy) of the model.
+
+```{r}
+
+newdata2$Predict <- ifelse(logit_1$fitted.values >0.5, "pos", "neg")
+
+mytable <- table(newdata2$diabetes,newdata2$Predict)
+
+rownames(mytable) <- c("Obs. neg","Obs. pos")
+
+colnames(mytable) <- c("Pred. neg","Pred. pos")
+
+mytable
+
+# Calculate model efficiency
+
+efficiency <- sum(diag(mytable))/sum(mytable)
+
+efficiency
+
+
+```
+
+c) **ROC Curve**
+
+ROC stands for Receiver Operating Characteristic. 
+It explains the model’s performance by evaluating Sensitivity vs Specificity.
+
+
+```{r}
+
+## ROC curve and AUC
+
+library("pROC")
+
+roc_curve <- roc(newdata2$diabetes, fitted(logit_1))
+
+auc(roc_curve)  
+
+```
+
+# plotting 
+
+```{r}
+
+roc(diabetes ~ logit_1$fitted.values, 
+    data = newdata2, 
+    plot = TRUE, 
+    main = "ROC CURVE", 
+    col= "blue")
+
+```
+
+# AUC
+
+```{r}
+
+auc(diabetes~logit_1$fitted.values, data = newdata2)
+
+```
+
+# Hosmer-Lemeshow test - assess model calibration
+
+```{r}
+
+library(ResourceSelection)
+
+hoslem.test(newdata2$diabetes, fitted(logit_1)) # p value
+
+```
+
+
+## Extract the coefficient estimates, standard errors, z-values, and p-values
+
+```{r}
+
+coef(logit_1) # get coefficient estimates
+
+summary(logit_1)$coefficients[, "Std. Error"] # get standard errors
+
+summary(logit_1)$coefficients[, "z value"] # get z-values
+
+summary(logit_1)$coefficients[, "Pr(>|z|)"] # get p-values
+
+
+# z_values <- coefs / std_errors
+# p_values <- 2 * (1 - pnorm(abs(z_values)))
+
+
+```
+
+## Extract the odds ratios (ORs) & respective 95% confidence intervals
+
+```{r}
+
+# ORs 
+
+exp(logit_1$coefficients) # exponentiate log odd - coefficients
+
+# see interpretations below this chunk
+  
+# ORs 95% confidence intervals 
+
+exp(confint(logit_1)) # exponentiate coefficients CIs 
+
+```
+
+## Interpreting above ORs - pay attention to P values to conclude on significance
+
+## ... with all other factors/variables held constant.
+
+Intercept: The intercept represents the baseline or reference category. In this case, it suggests the odds of having diabetes when all other predictor variables are zero or not considered.
+
+Glucose: For each one-unit increase in glucose level, the odds of having diabetes increase by a factor of approximately 1.04.
+
+Pressure: For each one-unit increase in pressure, the odds of having diabetes decrease slightly by a factor of approximately 0.995. 
+
+Triceps: For each one-unit increase in triceps skin-fold thickness, the odds of having diabetes increase by a factor of approximately 1.01. 
+
+Insulin: For each one-unit increase in insulin level, the odds of having diabetes decrease slightly by a factor of approximately 0.999. 
+
+Mass: For each one-unit increase in body mass index (BMI), the odds of having diabetes increase by a factor of approximately 1.07.
+
+Pedigree: For each one-unit increase in the diabetes pedigree function, the odds of having diabetes increase significantly by a factor of approximately 2.76.
+
+Age Buckets: The odds ratios for the different age categories (31-40, 41-50, 50+) indicate the increase in odds of having diabetes compared to the reference category (20-30) years. For example, compared to 20-30 years category, the odds of having diabetes are approximately 3.99 times higher for individuals in the age bucket of 50+ years.
+
+Pregnancy Buckets: Compared to the baseline category (0-5) pregancies, the odds of having diabetes are approximately 2.13 times higher for individuals in the 5-10 group.
+
+
+# Deliver the model output in publication table using gtsummary package
+
+```{r}
+
+suppressMessages(library(gtsummary))
+
+gtsummary::tbl_regression(logit_1, exp = T) # exp = T exponentiates log odds to ORs
+
+```
+

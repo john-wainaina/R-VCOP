@@ -1,0 +1,99 @@
+---
+title: "Ordinal Logistic Regression Model in R"
+author: "John Wainaina <phomwangi@gmail.com>"
+date: "2023-06-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+```
+
+## Ordinal Logistic Regression Model
+
+**Introduction**
+
+The model estimates the relationship between the independent variables and the odds of an observation falling into a higher category relative to a lower category.
+
+The key assumption - proportional odds assumption!
+
+ ... states that the relationship between the independent variables and the dependent variable is consistent across all levels of the dependent variable. 
+ 
+ ... means; the effect of the independent variables on the odds of being in a higher category versus a lower category is assumed to be constant.
+
+
+```{r}
+
+# Fit an ordinal logistic regression model
+
+library(MASS)
+library(foreign)
+library(haven)
+library(mlbench) 
+library(ordinal)
+
+data(wine) 
+
+summary(wine)
+
+model <- clm(rating ~ temp  +  contact, data = wine)
+
+summary(model)
+
+coef(model) # Threshold coefficients and predictor estimates:
+
+
+```
+Threshold coefficients represent the cutoff points or boundaries between different rating categories. 
+
+They indicate the point at which the log-odds of the response variable transitioning from one category to the next changes.
+
+
+# Interpret coefficient estimates
+
+***tempwarm***: The coefficient estimate of 2.5031 suggests that when the temperature is warm, there is an increase in the log-odds of a higher rating for the wine. The coefficient is statistically significant (p < 0.001), indicating a strong positive effect of temperature on the wine rating.
+
+the coefficient of 2.5031 means that when the temperature changes from the reference level (e.g., cool or cold) to warm while holding other variables constant, the log-odds of a higher rating increase by a factor of exp(2.5031) or approximately 12.23. This suggests a substantial positive effect of warm temperature on the wine rating.
+
+
+***contactyes***: The coefficient estimate of 1.5278 indicates that when there is contact, there is an increase in the log-odds of a higher rating for the wine. The coefficient is statistically significant (p = 0.00135), suggesting a significant positive effect of contact on the wine rating.
+
+the odds of a higher rating for the wine increase by a factor of exp(1.5278) or approximately 4.61. This means that wines with contact have about 4.61 times higher odds of receiving a higher rating compared to wines without contact, while holding other variables constant.
+
+
+## Convert the coefficients to Odd Ratios
+
+
+```{r}
+
+exp(coef(model))
+
+exp(confint(model))
+
+```
+**Interpreting these odds ratios**:
+
+For tempwarm, the odds of a higher rating for the wine are approximately 12.23 times higher when the temperature is warm compared to cool or cold, while keeping other factors constant.
+
+For contactyes, wines with contact have approximately 4.61 times higher odds of receiving a higher rating compared to wines without contact, assuming other variables remain the same.
+
+These odds ratios provide an understanding of the relative change in the odds of a higher rating associated with each predictor variable.
+
+**Inteprete thresholds with ORs**:
+
+Threshold 1|2: The exponentiated coefficient of -1.3444 corresponds to an odds ratio of exp(-1.3444) ≈ 0.261. This means that, compared to the reference level (category 1), the odds of wines being classified into rating category 2 or higher are approximately 0.261 times lower. The odds of wines being in a higher rating category (2 or above) decrease by about 74% compared to category 1.
+
+Threshold 2|3: The exponentiated coefficient of 1.2508 corresponds to an odds ratio of exp(1.2508) ≈ 3.49. This indicates that, compared to rating category 2, the odds of wines being classified into category 3 or higher are approximately 3.49 times higher. Wines are about 3.49 times more likely to be in a higher rating category (3 or above) compared to category 2.
+
+
+```{r}
+# Example datasets for ordinal
+
+
+
+```
+
+```
+

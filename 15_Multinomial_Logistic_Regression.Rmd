@@ -1,0 +1,80 @@
+---
+title: "Multinomial Logistic Regression Model in R"
+author: "John Wainaina <phomwangi@gmail.com>"
+date: "2023-06-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(nnet)
+
+```
+
+```{r}
+
+# Load the dataset
+
+data(iris)
+
+# Fit a multinomial logistic regression model
+
+model <- multinom(Species ~ Sepal.Length + Sepal.Width + Petal.Length + Petal.Width, data = iris)
+
+summary(model)
+
+model$deviance
+
+
+
+```
+
+**Coefficients**: 
+
+The coefficients section shows the estimated coefficients for each predictor variable in the model. Each row represents a different level of the response variable (species).
+
+Residual Deviance: The residual deviance is a measure of how well the model fits the data. A lower residual deviance indicates a better fit. In this case, the residual deviance is `r model$deviance`.
+
+AIC: AIC (Akaike Information Criterion) is a measure of the model's quality. A lower AIC indicates a better model fit. In this case, the AIC is `r model$AIC`.
+
+**Interpretation**:
+
+In multinomial logistic regression, the coefficients represent the log-odds ratios comparing each level of the response variable to a reference level (which is typically the first level). To obtain the probabilities or odds ratios, you would need to exponentiate the coefficients.
+
+
+
+
+```{r}
+## Exponentiate log odd ratios
+
+exp(coef(model))
+
+## Confidence intervals around ORs
+
+exp(confint(model))
+
+```
+
+**For the "versicolor" level**:
+
+The odds ratio for the intercept (1.309563e+08) represents the odds of being in the "versicolor" category compared to the reference level ("setosa") when all predictor variables are zero. However, extremely large odds ratios like this suggest that the model might be overfitting or there could be numerical instability.
+
+The odds ratio for Sepal.Length (0.0042602646) indicates that for a one-unit increase in sepal length, the odds of being in the "versicolor" category decrease by a factor of 0.0042602646, assuming all other variables are held constant.
+
+The odds ratio for Sepal.Width (1.653575e-04) suggests that for a one-unit increase in sepal width, the odds of being in the "versicolor" category decrease by a factor of 1.653575e-04.
+
+The odds ratio for Petal.Length (1536120) implies that for a one-unit increase in petal length, the odds of being in the "versicolor" category increase by a factor of 1536120.
+
+The odds ratio for Petal.Width (4.515366e-02) indicates that for a one-unit increase in petal width, the odds of being in the "versicolor" category decrease by a factor of 0.04515366.
+
+
+```{r}
+
+
+
+
+```
+
+
+ 

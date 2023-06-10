@@ -1,0 +1,146 @@
+---
+title: "Mixed Effects Models in R"
+author: "John Wainaina <phomwangi@gmail.com>"
+date: "2023-06-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(lme4)
+library(lmerTest)
+library(MASS)
+library(tidyverse)
+
+```
+
+**Mixed effects models**
+
+~ also known as hierarchical linear models or multilevel models.
+ These are statistical models used for analyzing data that have a hierarchical or nested structure.
+
+These models are particularly useful when dealing with data that exhibit dependence or clustering, where observations are grouped or clustered within higher-level units.
+
+Example: patients in different hospitals, students in schools/classes, longitudinal structured survey, cohorts, patients under different doctors etc.
+
+**components**:
+
+a) Fixed effects 
+
+The fixed effects represent the population-level effects.
+
+These are similar to the coefficients in a regular linear regression model. 
+
+They capture the average relationship between the predictors and the response variable across all levels. 
+
+b) Random effects
+
+These account for the variability within each group or cluster and allow for individual variations between the groups.
+
+
+```{r}
+
+# Fit a mixed effect model
+
+library(lme4)
+
+data(sleepstudy)
+head(sleepstudy)
+
+model <- lmer(Reaction ~ Days + (Days | Subject), data = sleepstudy)
+
+summary(model)
+
+# The model formula (Days | Subject) specifies that both the intercept and the effect of "Days" vary randomly across the "Subject" grouping variable. This captures the individual differences in reaction times and the potential variations in the relationship between reaction times and sleep deprivation.
+
+
+```
+
+**Random Effects**:
+
+Variance: 
+
+The estimated variance components indicate the variability between subjects for the intercept and the effect of "Days." 
+
+For the intercept, the estimated variance is 612.10, which corresponds to a standard deviation of 24.740. For the effect of "Days," the estimated variance is 35.07, with a standard deviation of 5.923. Additionally, the correlation between the random intercept and random effect of "Days" is 0.07, indicating a slight positive correlation between the subject-specific intercepts and the subject-specific slopes for "Days."
+
+Residual Variance:
+
+Residual: The estimated residual variance is 654.94, corresponding to a residual standard deviation of 25.592. This represents the unexplained variability in reaction times that is not accounted for by the fixed or random effects.
+
+**Fixed Effects**:
+
+Intercept: The estimated intercept is 251.405. This represents the estimated average reaction time at baseline (Day 0) when the "Days" variable is zero.
+
+Days: The estimated coefficient for "Days" is 10.467. This indicates that, on average, for each additional day of sleep deprivation, the reaction time increases by approximately 10.467 units.
+
+Correlation of Fixed Effects:
+
+The correlation between the fixed effects of intercept and "Days" is -0.138. This suggests a slight negative correlation between the baseline reaction time and the effect of "Days."
+
+```{r}
+#Example 2 model
+
+data(ChickWeight)
+
+head(ChickWeight)
+
+model2 <- lmer(weight ~ Time + Diet + (Time | Chick), data = ChickWeight)
+
+
+summary(model2)
+
+
+```
+
+**Explore the model summary**:
+
+The model formula (Time | Chick) specifies that both the intercept and the effect of "Time" vary randomly across the "Chick" grouping variable. This captures the individual variations in weight and the potential variations in the relationship between weight and time.
+
+Random Effects:
+
+The estimated variance component for the random intercept is 153.87, corresponding to a standard deviation of 12.40. 
+
+The estimated variance for the random effect of "Time" is 14.13, with a standard deviation of 3.76. 
+
+The correlation between the random intercept and the random effect of "Time" is -0.98.
+
+Fixed Effects: 
+
+The estimated intercept is 26.3561. This represents the estimated average weight of chicks at baseline (Time 0) when all other predictors are zero. 
+
+The estimated coefficient for "Time" is 8.4438, indicating that, on average, the weight of chicks increases by approximately 8.4438 units for each additional unit of time. 
+
+The coefficient for Diet4 is statistically significant (p-value < 0.001), suggesting that Diet4 has a significant effect on chick weight.
+
+
+```{r}
+
+```
+
+**Components of the model summary**:
+
+
+The random effect components in the model summary provide information about the ***variability within the grouping variables*** in a mixed effects model. 
+
+They capture the random variation in intercepts and/or slopes that occur across different levels of the grouping variable. They are displayed as variances/SDs.
+
+### Variance/Standard Deviation: 
+
+The variance component represents the amount of variation in the response variable (outcome) that is associated with the grouping variable. 
+
+### Grouping Variable: 
+
+This is a categorical variable that defines the clusters or groups in the data. E.g., Chick, Subject in above examples.
+
+
+### Random Intercept: 
+
+A random intercept allows for variation in the baseline level of the response variable across the different levels of the grouping variable. The estimated variance (or standard deviation) for the random intercept indicates how much the response variable can vary from one group to another.
+
+Random Slope: A random slope allows for variation in the effect of predictor variables across the different levels of the grouping variable. In some models, you may have random slopes in addition to random intercepts. For example, in the "sleepstudy" dataset, the random slope for "Days" accounts for variation in the rate of change in reaction time across individuals.
+
+Correlation: If your model includes both random intercepts and random slopes, the correlation between them represents the relationship or association between the group-specific intercepts and slopes. A positive correlation indicates that individuals with higher intercepts tend to have steeper slopes, while a negative correlation indicates the opposite.
+
+
